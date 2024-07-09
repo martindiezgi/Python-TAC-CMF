@@ -1,11 +1,15 @@
 ---
 title: "Tasa Anualizada de Costos, Fondos Mutuos"
 author: "Martín Diez"
+echo: false
 warning: false
 format: 
-  html:
-    code-fold: true
-jupyter: python3
+  pdf:
+      documentclass: scrartcl
+      papersize: letter
+      toc: false
+      number-sections: false
+      colorlinks: true
 ---
 
 En el archivo a continuación se entrega un breve resumen de la evolución de las estadísticas de los costos relacionados a la inversión en fondos mutuos.
@@ -14,7 +18,7 @@ En el primer gráfico se puede revisar la evolución de las estadísticas genera
 
 ```{python}
 #| label: tac-fm
-#| fig-cap: "Fuente: Elaboración propia en base a datos CMF"
+#| fig-cap: "TAC Fondos Mutuos. Elaboración propia en base a datos CMF"
 
 import os
 import pandas as pd
@@ -61,8 +65,6 @@ plt.title('Estadísticas TAC Fondos Mutuos 2006-2024')
 plt.xlabel('Fecha')
 plt.ylabel('TAC (%)')
 plt.legend()
-""" cpt = "Fuente: Elaboración propia en base a datos CMF"
-plt.figtext(0.5, 0 , cpt, ha="center") """
 plt.grid(True)
 plt.show()
 
@@ -72,7 +74,7 @@ En el segundo gráfico, desagregando por categoría, la tendencia es similar. Ca
 
 ```{python}
 #| label: tac_catfm
-#| fig-cap: "Fuente: Elaboración propia en base a datos CMF"
+#| fig-cap: "TAC por Tipo CMF. Elaboración propia en base a datos CMF"
 
 tac_cat = (df.groupby(["Periodo", "Tipo Fondo"])["TAC Total"]
             .agg(["mean"]))
@@ -91,8 +93,6 @@ plt.title('TAC Fondos Mutuos por Categoría CMF')
 plt.xlabel('Fecha')
 plt.ylabel('TAC (%)')
 plt.legend()
-""" cpt = "Fuente: Elaboración propia en base a datos CMF"
-plt.figtext(0.5, 0 , cpt, ha="center") """
 plt.grid(True)
 plt.show()
 
