@@ -1,0 +1,100 @@
+---
+title: "Tasa Anualizada de Costos, Fondos Mutuos"
+author: "Martín Diez"
+warning: false
+format: 
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+En el archivo a continuación se entrega un breve resumen de la evolución de las estadísticas de los costos relacionados a la inversión en fondos mutuos.
+
+En el primer gráfico se puede revisar la evolución de las estadísticas generales de la industria: Media, Mediana, y el percentil 90 y 10. A simple vista se puede observar una reducción de todas las medidas desde 2006 a día de hoy.
+
+```{python}
+#| label: tac-fm
+#| fig-cap: "Fuente: Elaboración propia en base a datos CMF"
+
+import os
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+cols = list(range(0, 6)) + [13]
+
+df = pd.read_csv("data_tac.csv", skiprows=2, usecols=cols)
+
+df["TAC Total"] = pd.to_numeric(df["TAC Total"], errors="coerce")
+
+df = (df.dropna(subset = ["Periodo", "Tipo Fondo", "TAC Total"])
+      .drop_duplicates())
+
+df["Periodo"] = (pd.to_datetime(df["Periodo"], format="%Y%m%d", errors='coerce')
+                .dt.to_period('M')
+                .dt.to_timestamp()
+                )
+ 
+#print(df.dtypes)
+
+#df.head() 
+
+tac_stats = (df.groupby("Periodo")["TAC Total"]
+            .agg(["mean",
+                  #lambda x: x.mean().round(2)
+                  "median",
+                  lambda x: x.quantile(0.90),
+                  lambda x: x.quantile(0.10)]))
+
+tac_stats.columns = ["Media", "Mediana", "p90", "p10"]
+
+tac_stats = tac_stats.reset_index()
+
+# Plot using Seaborn
+plt.figure(figsize=(10, 6))
+sns.lineplot(x='Periodo', y='Media', data=tac_stats, marker='o', label='Media')
+sns.lineplot(x='Periodo', y='Mediana', data=tac_stats, marker='s', label='Mediana')
+sns.lineplot(x='Periodo', y='p90', data=tac_stats, marker='X', label='p90')
+sns.lineplot(x='Periodo', y='p10', data=tac_stats, marker='X', label='p10')
+
+plt.title('Estadísticas TAC Fondos Mutuos 2006-2024')
+plt.xlabel('Fecha')
+plt.ylabel('TAC (%)')
+plt.legend()
+""" cpt = "Fuente: Elaboración propia en base a datos CMF"
+plt.figtext(0.5, 0 , cpt, ha="center") """
+plt.grid(True)
+plt.show()
+
+```
+
+En el segundo gráfico, desagregando por categoría, la tendencia es similar. Cabe destacar que hay categorías que observan mayor volatilidad en sus costos, principalmente las que no califican dentro de categorías de deuda (Tipo 4, 5, 6, 7 y 8).
+
+```{python}
+#| label: tac_catfm
+#| fig-cap: "Fuente: Elaboración propia en base a datos CMF"
+
+tac_cat = (df.groupby(["Periodo", "Tipo Fondo"])["TAC Total"]
+            .agg(["mean"]))
+
+tac_cat = tac_cat.reset_index()
+
+tac_cat["Tipo Fondo"] = "Tipo " + tac_cat["Tipo Fondo"]
+
+tac_cat.rename(columns={'mean': 'Media'}, inplace=True)
+
+# Plot using Seaborn
+plt.figure(figsize=(10, 6))
+sns.lineplot(x='Periodo', y='Media', data=tac_cat, hue="Tipo Fondo")
+
+plt.title('TAC Fondos Mutuos por Categoría CMF')
+plt.xlabel('Fecha')
+plt.ylabel('TAC (%)')
+plt.legend()
+""" cpt = "Fuente: Elaboración propia en base a datos CMF"
+plt.figtext(0.5, 0 , cpt, ha="center") """
+plt.grid(True)
+plt.show()
+
+```
+
